@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+*.egg-info/
+.coverage
+htmlcov/
+.pytest_cache/
+dist/
+
+# Node
+node_modules/
+build/
+.next/
+.env.local
+
+# Docker
+.docker/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Poetry
+poetry.lock
