@@ -1,0 +1,108 @@
+services:
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
+    container_name: beehive-backend
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      - INFLUX_URL=http://influxdb:8086
+      - MQTT_BROKER=emqx
+      - MQTT_PORT=1883
+    depends_on:
+      postgres:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+      emqx:
+        condition: service_started
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: beehive-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  postgres:
+    image: timescale/timescaledb:latest-pg15
+    container_name: beehive-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-beehive_db}
+      POSTGRES_USER: ${DB_USER:-beehive_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-beehive_pass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-beehive_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: beehive-influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUX_USER:-admin}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUX_PASSWORD:-adminpassword}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUX_ORG:-beehive}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUX_BUCKET:-sensors}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUX_TOKEN:-my-super-secret-token}
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: beehive-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+
+  emqx:
+    image: emqx/emqx:5.3.0
+    container_name: beehive-emqx
+    ports:
+      - "1883:1883"
+      - "8883:8883"
+      - "18083:18083"
+    volumes:
+      - emqx_data:/opt/emqx/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  influxdb_data:
+  grafana_data:
+  emqx_data:
