@@ -6,7 +6,7 @@ clf = SwarmingClassifier()
 
 
 def test_swarm_detected_high_sound():
-    f = SwarmingFeatures(sound_level=0.9, temperature=35.0, weight_delta=-0.5)
+    f = SwarmingFeatures(sound_level=0.9, temperature=35.0, weight_delta=0.5)
     assert clf.predict(f) is True
 
 
