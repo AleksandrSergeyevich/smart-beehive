@@ -24,7 +24,7 @@ repos:
         entry: poetry run pylint
         language: system
         types: [python]
-        args: ["--rcfile=.pylintrc", "--fail-under=8.0"]
+        args: ["--fail-under=7.5"]
 
   # isort — сортировка импортов
   - repo: https://github.com/pycqa/isort

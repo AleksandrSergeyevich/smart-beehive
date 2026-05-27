@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.api.beehives import router as beehives_router
 from src.api.sensors import router as sensors_router
+from src.api.alerts import router as alerts_router
 
 app = FastAPI(title="Smart Beehive API", version="0.2.0")
 
@@ -14,6 +15,7 @@ app.add_middleware(
 
 app.include_router(beehives_router, prefix="/api/v1/beehives", tags=["beehives"])
 app.include_router(sensors_router, prefix="/api/v1/sensors", tags=["sensors"])
+app.include_router(alerts_router, prefix="/api/v1/alerts", tags=["alerts"])
 
 
 @app.get("/health")
