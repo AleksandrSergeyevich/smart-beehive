@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from datetime import datetime
 
-router = APIRouter(prefix="/alerts", tags=["alerts"])
+router = APIRouter()
 
 
 class Alert(BaseModel):
